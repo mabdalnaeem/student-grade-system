@@ -20,13 +20,15 @@ if "active_nav" not in st.session_state:
 
 data = load_data()
 
-# Role-based color themes (No checkmark, pure color identity + compact mode indicator)
+# Full-page & role-based color themes
 role_themes = {
     "Admin": {
         "primary": "#2563eb",
         "secondary": "#06b6d4",
         "gradient": "linear-gradient(135deg, #2563eb 0%, #06b6d4 100%)",
-        "hero_bg": "linear-gradient(125deg, #0b132b 0%, #1d4ed8 55%, #0891b2 100%)",
+        "hero_bg": "linear-gradient(125deg, #091326 0%, #1d4ed8 55%, #0891b2 100%)",
+        "page_bg": "radial-gradient(circle at 15% 15%, rgba(37, 99, 235, 0.24), transparent 42%), radial-gradient(circle at 85% 20%, rgba(6, 182, 212, 0.18), transparent 45%), linear-gradient(180deg, #071022 0%, #0b162c 55%, #071022 100%)",
+        "sidebar_bg": "linear-gradient(180deg, #091224 0%, #0d1930 100%)",
         "glow": "rgba(37, 99, 235, 0.45)",
         "soft_bg": "rgba(37, 99, 235, 0.16)",
         "mode_label": "ADMIN MODE",
@@ -36,7 +38,9 @@ role_themes = {
         "primary": "#059669",
         "secondary": "#10b981",
         "gradient": "linear-gradient(135deg, #059669 0%, #10b981 100%)",
-        "hero_bg": "linear-gradient(125deg, #06281e 0%, #047857 55%, #0d9488 100%)",
+        "hero_bg": "linear-gradient(125deg, #05231a 0%, #047857 55%, #0d9488 100%)",
+        "page_bg": "radial-gradient(circle at 15% 15%, rgba(16, 185, 129, 0.22), transparent 42%), radial-gradient(circle at 85% 20%, rgba(13, 148, 136, 0.18), transparent 45%), linear-gradient(180deg, #061b15 0%, #09261e 55%, #061b15 100%)",
+        "sidebar_bg": "linear-gradient(180deg, #061c16 0%, #0a2920 100%)",
         "glow": "rgba(16, 185, 129, 0.45)",
         "soft_bg": "rgba(16, 185, 129, 0.16)",
         "mode_label": "DOCTOR MODE",
@@ -46,7 +50,9 @@ role_themes = {
         "primary": "#9333ea",
         "secondary": "#ec4899",
         "gradient": "linear-gradient(135deg, #9333ea 0%, #ec4899 100%)",
-        "hero_bg": "linear-gradient(125deg, #1e1035 0%, #7e22ce 55%, #db2777 100%)",
+        "hero_bg": "linear-gradient(125deg, #1b0d30 0%, #7e22ce 55%, #db2777 100%)",
+        "page_bg": "radial-gradient(circle at 15% 15%, rgba(147, 51, 234, 0.24), transparent 42%), radial-gradient(circle at 85% 20%, rgba(236, 72, 153, 0.18), transparent 45%), linear-gradient(180deg, #120922 0%, #1b0d33 55%, #120922 100%)",
+        "sidebar_bg": "linear-gradient(180deg, #130924 0%, #1d0e38 100%)",
         "glow": "rgba(236, 72, 153, 0.45)",
         "soft_bg": "rgba(147, 51, 234, 0.18)",
         "mode_label": "STUDENT MODE",
@@ -57,7 +63,7 @@ role_themes = {
 role = st.session_state.active_role
 rt = role_themes[role]
 
-# Sidebar: Compact Mode Pill + Role Switcher (colored without checkmarks) + Navigation
+# Sidebar: 3 Primary Full-Width Role Buttons + Compact Mode Box + Navigation
 with st.sidebar:
     st.markdown(f"""
     <div class="compact-mode-banner" style="background:{rt['gradient']}; box-shadow:0 6px 18px {rt['glow']};">
@@ -66,28 +72,32 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown("<div class='side-section-title'>ACCESS ROLE</div>", unsafe_allow_html=True)
-    roles = ["Admin", "Doctor", "Student"]
-    role_cols = st.columns(3)
-    for idx, r in enumerate(roles):
-        with role_cols[idx]:
-            is_selected = (st.session_state.active_role == r)
-            marker_cls = "role-active-marker" if is_selected else "role-idle-marker"
-            st.markdown(f"<div class='{marker_cls}' data-role='{r}'></div>", unsafe_allow_html=True)
-            if st.button(r, key=f"role_btn_{r}", use_container_width=True):
-                st.session_state.active_role = r
-                allowed_menus = {
-                    "Admin": ["Overview & Students", "Courses & Enrollment", "Grade Entry", "Student Transcript"],
-                    "Doctor": ["Grade Entry", "Student Transcript"],
-                    "Student": ["Student Transcript"]
-                }[r]
-                if st.session_state.active_nav not in allowed_menus:
-                    st.session_state.active_nav = allowed_menus[0]
-                st.rerun()
+    st.markdown("<div class='side-section-title'>MAIN ACCESS ROLES</div>", unsafe_allow_html=True)
+
+    roles_meta = [
+        ("Admin", "Full System Control"),
+        ("Doctor", "Grades & Transcripts"),
+        ("Student", "Personal GPA & CSV")
+    ]
+
+    for r, r_sub in roles_meta:
+        is_selected = (st.session_state.active_role == r)
+        marker_cls = "role-active-marker" if is_selected else "role-idle-marker"
+        st.markdown(f"<div class='{marker_cls}'></div>", unsafe_allow_html=True)
+        if st.button(f"{r}  •  {r_sub}", key=f"role_btn_{r}", use_container_width=True):
+            st.session_state.active_role = r
+            allowed_menus = {
+                "Admin": ["Overview & Students", "Courses & Enrollment", "Grade Entry", "Student Transcript"],
+                "Doctor": ["Grade Entry", "Student Transcript"],
+                "Student": ["Student Transcript"]
+            }[r]
+            if st.session_state.active_nav not in allowed_menus:
+                st.session_state.active_nav = allowed_menus[0]
+            st.rerun()
 
     st.markdown(f"""
     <div class="compact-role-card" style="background:{rt['soft_bg']}; border-color:{rt['secondary']};">
-        <div class="compact-role-title">{role} Access</div>
+        <div class="compact-role-title">{role} Active</div>
         <div class="compact-role-sub">{rt['short_desc']}</div>
     </div>
     """, unsafe_allow_html=True)
@@ -113,7 +123,7 @@ with st.sidebar:
 
 menu = st.session_state.active_nav
 
-# Dark Theme + Role-Dynamic Colors + Interactive Hover/Click Animations
+# Full-Page Dynamic Background + Role Colors + Interactive Hover/Click Animations
 st.markdown(f"""
 <style>
     @keyframes fadeSlideDown {{
@@ -126,28 +136,40 @@ st.markdown(f"""
         50% {{ transform: scale(1.35); opacity: 0.7; }}
     }}
 
-    .stApp, [data-testid="stAppViewContainer"] {{
-        background-color: #070b14 !important;
+    .stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"], .main {{
+        background: {rt['page_bg']} !important;
         color: #f8fafc !important;
-        transition: background-color 0.3s ease, color 0.3s ease;
+        transition: background 0.35s ease, color 0.3s ease;
+    }}
+
+    [data-testid="stAppViewContainer"]::before {{
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+        background-size: 24px 24px;
+        pointer-events: none;
+        z-index: 0;
     }}
 
     [data-testid="stHeader"] {{
-        background-color: rgba(7, 11, 20, 0.85) !important;
-        backdrop-filter: blur(8px);
+        background: rgba(7, 11, 20, 0.72) !important;
+        backdrop-filter: blur(10px);
     }}
 
-    /* Ensure top hero banner is never clipped under header */
     .block-container {{
+        position: relative;
+        z-index: 1;
         animation: fadeSlideDown 0.4s cubic-bezier(0.22, 1, 0.36, 1);
         padding-top: 3.4rem !important;
         padding-bottom: 2.5rem !important;
     }}
 
     [data-testid="stSidebar"] {{
-        background: linear-gradient(180deg, #0c1322 0%, #090e1a 100%) !important;
-        border-right: 1px solid rgba(148, 163, 184, 0.16) !important;
-        min-width: 210px !important;
+        background: {rt['sidebar_bg']} !important;
+        border-right: 1px solid rgba(255, 255, 255, 0.12) !important;
+        min-width: 225px !important;
+        transition: background 0.35s ease;
     }}
 
     [data-testid="stSidebar"] .block-container {{
@@ -158,7 +180,7 @@ st.markdown(f"""
         font-size: 0.72rem;
         font-weight: 800;
         letter-spacing: 0.08em;
-        color: #94a3b8;
+        color: #cbd5e1;
         margin: 6px 0 8px 2px;
     }}
 
@@ -166,10 +188,10 @@ st.markdown(f"""
         display: flex;
         align-items: center;
         gap: 8px;
-        padding: 8px 11px;
+        padding: 8px 12px;
         border-radius: 11px;
         color: #ffffff;
-        font-size: 0.76rem;
+        font-size: 0.78rem;
         font-weight: 800;
         letter-spacing: 0.05em;
         margin-bottom: 10px;
@@ -210,13 +232,12 @@ st.markdown(f"""
 
     .compact-role-sub {{
         font-size: 0.72rem;
-        color: #cbd5e1;
+        color: #e2e8f0;
         line-height: 1.35;
         margin-top: 2px;
     }}
 
-    /* Style active role button without checkmarks */
-    .role-active-marker {{
+    .role-active-marker, .role-idle-marker, .nav-btn-active, .nav-btn-idle {{
         display: none;
     }}
 
@@ -224,22 +245,13 @@ st.markdown(f"""
         background: {rt['gradient']} !important;
         color: #ffffff !important;
         border: 1px solid {rt['secondary']} !important;
-        box-shadow: 0 4px 16px {rt['glow']} !important;
-        transform: translateY(-1px);
-    }}
-
-    .role-idle-marker {{
-        display: none;
+        box-shadow: 0 5px 18px {rt['glow']} !important;
     }}
 
     .role-idle-marker + div [data-testid="stBaseButton-secondary"] {{
-        background: #131c31 !important;
-        color: #cbd5e1 !important;
-        border: 1px solid rgba(148, 163, 184, 0.2) !important;
-    }}
-
-    .nav-btn-active, .nav-btn-idle {{
-        display: none;
+        background: rgba(15, 23, 42, 0.78) !important;
+        color: #e2e8f0 !important;
+        border: 1px solid rgba(255, 255, 255, 0.14) !important;
     }}
 
     .nav-btn-active + div [data-testid="stBaseButton-secondary"] {{
@@ -251,18 +263,19 @@ st.markdown(f"""
     }}
 
     .nav-btn-idle + div [data-testid="stBaseButton-secondary"] {{
-        background: #11192c !important;
+        background: rgba(15, 23, 42, 0.65) !important;
         color: #cbd5e1 !important;
-        border: 1px solid rgba(148, 163, 184, 0.16) !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
     }}
 
     [data-testid="stSidebar"] .stButton > button {{
         border-radius: 10px !important;
-        padding: 0.42rem 0.5rem !important;
-        margin-bottom: 5px !important;
-        font-size: 0.8rem !important;
+        padding: 0.48rem 0.7rem !important;
+        margin-bottom: 6px !important;
+        font-size: 0.82rem !important;
         font-weight: 700 !important;
-        white-space: nowrap !important;
+        text-align: left !important;
+        justify-content: flex-start !important;
         transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease, border-color 0.2s ease !important;
     }}
 
@@ -273,7 +286,7 @@ st.markdown(f"""
     }}
 
     [data-testid="stSidebar"] .stButton > button:active {{
-        transform: scale(0.95) !important;
+        transform: scale(0.96) !important;
     }}
 
     .hero-card {{
@@ -281,7 +294,7 @@ st.markdown(f"""
         border-radius: 20px;
         padding: 24px 28px;
         margin-bottom: 22px;
-        border: 1px solid rgba(255, 255, 255, 0.14);
+        border: 1px solid rgba(255, 255, 255, 0.16);
         box-shadow: 0 14px 34px {rt['glow']};
         transition: transform 0.25s ease, box-shadow 0.25s ease;
     }}
@@ -300,7 +313,7 @@ st.markdown(f"""
 
     .hero-sub {{
         font-size: 0.95rem;
-        color: rgba(255, 255, 255, 0.9) !important;
+        color: rgba(255, 255, 255, 0.92) !important;
         margin: 0;
     }}
 
@@ -344,8 +357,8 @@ st.markdown(f"""
     .kpi-val {{ font-size: 2rem; font-weight: 800; color: #ffffff !important; }}
 
     [data-testid="stForm"] {{
-        background: #0f172a !important;
-        border: 1px solid rgba(148, 163, 184, 0.2) !important;
+        background: rgba(15, 23, 42, 0.82) !important;
+        border: 1px solid rgba(255, 255, 255, 0.14) !important;
         border-radius: 18px !important;
         padding: 18px 20px !important;
         box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4) !important;
@@ -358,7 +371,7 @@ st.markdown(f"""
     }}
 
     [data-testid="stFileUploaderDropzone"] {{
-        background-color: #111a2e !important;
+        background-color: rgba(15, 23, 42, 0.82) !important;
         border: 1.5px dashed {rt['secondary']} !important;
         border-radius: 14px !important;
         transition: transform 0.2s ease, box-shadow 0.2s ease !important;
@@ -370,9 +383,9 @@ st.markdown(f"""
     }}
 
     .stTextInput input, .stSelectbox div[data-baseweb="select"] > div {{
-        background-color: #162036 !important;
+        background-color: rgba(20, 30, 52, 0.9) !important;
         color: #f8fafc !important;
-        border-color: rgba(148, 163, 184, 0.25) !important;
+        border-color: rgba(255, 255, 255, 0.18) !important;
         border-radius: 11px !important;
         transition: transform 0.18s ease, border-color 0.2s ease, box-shadow 0.2s ease !important;
     }}
