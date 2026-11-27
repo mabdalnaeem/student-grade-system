@@ -1,0 +1,17 @@
+{
+    "students": {
+        "692600569": {
+            "name": "Pola Remon",
+            "major": "Computer Science",
+            "courses": {
+                "CSC1100": null
+            }
+        }
+    },
+    "courses": {
+        "CSC1100": {
+            "name": "Into to CS",
+            "credits": 3
+        }
+    }
+}
