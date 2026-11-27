@@ -12,9 +12,6 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-if "theme" not in st.session_state:
-    st.session_state.theme = "Dark"
-
 if "active_role" not in st.session_state:
     st.session_state.active_role = "Admin"
 
@@ -23,28 +20,61 @@ if "active_nav" not in st.session_state:
 
 data = load_data()
 
-# Sidebar: Theme Switcher + Interactive Role & Navigation
-with st.sidebar:
-    st.markdown("#### 🎨 Appearance Mode")
-    theme_choice = st.segmented_control(
-        "Theme",
-        options=["Dark", "Light"],
-        default=st.session_state.theme,
-        label_visibility="collapsed"
-    )
-    if theme_choice and theme_choice != st.session_state.theme:
-        st.session_state.theme = theme_choice
-        st.rerun()
+# Role-based color themes (No checkmark, pure color identity + compact mode indicator)
+role_themes = {
+    "Admin": {
+        "primary": "#2563eb",
+        "secondary": "#06b6d4",
+        "gradient": "linear-gradient(135deg, #2563eb 0%, #06b6d4 100%)",
+        "hero_bg": "linear-gradient(125deg, #0b132b 0%, #1d4ed8 55%, #0891b2 100%)",
+        "glow": "rgba(37, 99, 235, 0.45)",
+        "soft_bg": "rgba(37, 99, 235, 0.16)",
+        "mode_label": "ADMIN MODE",
+        "short_desc": "Full control: students, Excel, courses, grades & transcripts."
+    },
+    "Doctor": {
+        "primary": "#059669",
+        "secondary": "#10b981",
+        "gradient": "linear-gradient(135deg, #059669 0%, #10b981 100%)",
+        "hero_bg": "linear-gradient(125deg, #06281e 0%, #047857 55%, #0d9488 100%)",
+        "glow": "rgba(16, 185, 129, 0.45)",
+        "soft_bg": "rgba(16, 185, 129, 0.16)",
+        "mode_label": "DOCTOR MODE",
+        "short_desc": "Faculty view: enter grades & check student transcripts."
+    },
+    "Student": {
+        "primary": "#9333ea",
+        "secondary": "#ec4899",
+        "gradient": "linear-gradient(135deg, #9333ea 0%, #ec4899 100%)",
+        "hero_bg": "linear-gradient(125deg, #1e1035 0%, #7e22ce 55%, #db2777 100%)",
+        "glow": "rgba(236, 72, 153, 0.45)",
+        "soft_bg": "rgba(147, 51, 234, 0.18)",
+        "mode_label": "STUDENT MODE",
+        "short_desc": "Student view: check GPA, grades & download CSV."
+    }
+}
 
-    st.divider()
-    st.markdown("#### 🔐 Role Switcher")
+role = st.session_state.active_role
+rt = role_themes[role]
+
+# Sidebar: Compact Mode Pill + Role Switcher (colored without checkmarks) + Navigation
+with st.sidebar:
+    st.markdown(f"""
+    <div class="compact-mode-banner" style="background:{rt['gradient']}; box-shadow:0 6px 18px {rt['glow']};">
+        <span class="mode-dot"></span>
+        <span>{rt['mode_label']}</span>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<div class='side-section-title'>ACCESS ROLE</div>", unsafe_allow_html=True)
     roles = ["Admin", "Doctor", "Student"]
     role_cols = st.columns(3)
     for idx, r in enumerate(roles):
         with role_cols[idx]:
-            is_act_role = (st.session_state.active_role == r)
-            lbl = f"✓ {r}" if is_act_role else r
-            if st.button(lbl, key=f"role_btn_{r}", use_container_width=True):
+            is_selected = (st.session_state.active_role == r)
+            marker_cls = "role-active-marker" if is_selected else "role-idle-marker"
+            st.markdown(f"<div class='{marker_cls}' data-role='{r}'></div>", unsafe_allow_html=True)
+            if st.button(r, key=f"role_btn_{r}", use_container_width=True):
                 st.session_state.active_role = r
                 allowed_menus = {
                     "Admin": ["Overview & Students", "Courses & Enrollment", "Grade Entry", "Student Transcript"],
@@ -55,22 +85,14 @@ with st.sidebar:
                     st.session_state.active_nav = allowed_menus[0]
                 st.rerun()
 
-    role = st.session_state.active_role
-    role_badges = {
-        "Admin": ("🛡️ Full Admin Access", "Students, Excel import, courses, enrollments, grades & transcripts."),
-        "Doctor": ("🩺 Faculty Access", "Enter/update grades and inspect student transcripts."),
-        "Student": ("🎒 Student Access", "View personal GPA, grades & download transcript CSV.")
-    }
-    badge_title, badge_desc = role_badges[role]
     st.markdown(f"""
-    <div class="role-box">
-        <div class="role-box-title">{badge_title}</div>
-        <div class="role-box-desc">{badge_desc}</div>
+    <div class="compact-role-card" style="background:{rt['soft_bg']}; border-color:{rt['secondary']};">
+        <div class="compact-role-title">{role} Access</div>
+        <div class="compact-role-sub">{rt['short_desc']}</div>
     </div>
     """, unsafe_allow_html=True)
 
-    st.divider()
-    st.markdown("#### 🧭 Navigation")
+    st.markdown("<div class='side-section-title' style='margin-top:14px;'>NAVIGATION</div>", unsafe_allow_html=True)
     if role == "Admin":
         menu_options = ["Overview & Students", "Courses & Enrollment", "Grade Entry", "Student Transcript"]
     elif role == "Doctor":
@@ -82,148 +104,191 @@ with st.sidebar:
         st.session_state.active_nav = menu_options[0]
 
     for item in menu_options:
-        is_selected = (st.session_state.active_nav == item)
-        prefix = "➤ " if is_selected else "◦ "
-        if st.button(f"{prefix}{item}", key=f"nav_{item}", use_container_width=True):
+        is_nav_selected = (st.session_state.active_nav == item)
+        nav_cls = "nav-btn-active" if is_nav_selected else "nav-btn-idle"
+        st.markdown(f"<div class='{nav_cls}'></div>", unsafe_allow_html=True)
+        if st.button(item, key=f"nav_{item}", use_container_width=True):
             st.session_state.active_nav = item
             st.rerun()
 
 menu = st.session_state.active_nav
-is_dark = (st.session_state.theme == "Dark")
 
-# Complete Dark & Light Palette
-if is_dark:
-    bg_main = "#090d16"
-    bg_header = "rgba(9, 13, 22, 0.85)"
-    bg_sidebar = "linear-gradient(180deg, #0f172a 0%, #111827 100%)"
-    bg_card = "#111827"
-    bg_dropzone = "#162033"
-    border_card = "rgba(99, 102, 241, 0.32)"
-    text_main = "#f8fafc"
-    text_label = "#e2e8f0"
-    text_muted = "#94a3b8"
-    input_bg = "#1e293b"
-    input_border = "#334155"
-    shadow_card = "0 10px 28px rgba(0, 0, 0, 0.45)"
-else:
-    bg_main = "#f1f5f9"
-    bg_header = "rgba(241, 245, 249, 0.88)"
-    bg_sidebar = "linear-gradient(180deg, #ffffff 0%, #e2e8f0 100%)"
-    bg_card = "#ffffff"
-    bg_dropzone = "#f8fafc"
-    border_card = "rgba(37, 99, 235, 0.24)"
-    text_main = "#0f172a"
-    text_label = "#0f172a"
-    text_muted = "#475569"
-    input_bg = "#ffffff"
-    input_border = "#cbd5e1"
-    shadow_card = "0 10px 26px rgba(15, 23, 42, 0.08)"
-
+# Dark Theme + Role-Dynamic Colors + Interactive Hover/Click Animations
 st.markdown(f"""
 <style>
-    @keyframes fadeUp {{
-        from {{ opacity: 0; transform: translateY(14px); }}
+    @keyframes fadeSlideDown {{
+        from {{ opacity: 0; transform: translateY(-10px); }}
         to {{ opacity: 1; transform: translateY(0); }}
     }}
 
-    .stApp, .stApp > div, [data-testid="stAppViewContainer"] {{
-        background-color: {bg_main} !important;
-        color: {text_main} !important;
-        transition: background-color 0.28s ease, color 0.28s ease;
+    @keyframes pulseDot {{
+        0%, 100% {{ transform: scale(1); opacity: 1; }}
+        50% {{ transform: scale(1.35); opacity: 0.7; }}
+    }}
+
+    .stApp, [data-testid="stAppViewContainer"] {{
+        background-color: #070b14 !important;
+        color: #f8fafc !important;
+        transition: background-color 0.3s ease, color 0.3s ease;
     }}
 
     [data-testid="stHeader"] {{
-        background-color: {bg_header} !important;
+        background-color: rgba(7, 11, 20, 0.85) !important;
         backdrop-filter: blur(8px);
     }}
 
-    h1, h2, h3, h4, h5, h6, p, span, div, label {{
-        color: inherit;
-    }}
-
-    .stMarkdown p, .stMarkdown span, .stMarkdown li, .stCaption, [data-testid="stWidgetLabel"] label, [data-testid="stWidgetLabel"] p {{
-        color: {text_label} !important;
-    }}
-
-    .stCaption {{
-        color: {text_muted} !important;
+    /* Ensure top hero banner is never clipped under header */
+    .block-container {{
+        animation: fadeSlideDown 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+        padding-top: 3.4rem !important;
+        padding-bottom: 2.5rem !important;
     }}
 
     [data-testid="stSidebar"] {{
-        background: {bg_sidebar} !important;
-        border-right: 1px solid {border_card} !important;
-        color: {text_main} !important;
+        background: linear-gradient(180deg, #0c1322 0%, #090e1a 100%) !important;
+        border-right: 1px solid rgba(148, 163, 184, 0.16) !important;
+        min-width: 210px !important;
+    }}
+
+    [data-testid="stSidebar"] .block-container {{
+        padding-top: 1.2rem !important;
+    }}
+
+    .side-section-title {{
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        color: #94a3b8;
+        margin: 6px 0 8px 2px;
+    }}
+
+    .compact-mode-banner {{
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 11px;
+        border-radius: 11px;
+        color: #ffffff;
+        font-size: 0.76rem;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        margin-bottom: 10px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }}
+
+    .compact-mode-banner:hover {{
+        transform: translateY(-2px);
+    }}
+
+    .mode-dot {{
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #ffffff;
+        flex-shrink: 0;
+        animation: pulseDot 1.8s infinite;
+    }}
+
+    .compact-role-card {{
+        border: 1px solid;
+        border-radius: 11px;
+        padding: 9px 11px;
+        margin-top: 8px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }}
+
+    .compact-role-card:hover {{
+        transform: translateY(-2px);
+        box-shadow: 0 8px 18px {rt['glow']};
+    }}
+
+    .compact-role-title {{
+        font-size: 0.82rem;
+        font-weight: 800;
+        color: #ffffff;
+    }}
+
+    .compact-role-sub {{
+        font-size: 0.72rem;
+        color: #cbd5e1;
+        line-height: 1.35;
+        margin-top: 2px;
+    }}
+
+    /* Style active role button without checkmarks */
+    .role-active-marker {{
+        display: none;
+    }}
+
+    .role-active-marker + div [data-testid="stBaseButton-secondary"] {{
+        background: {rt['gradient']} !important;
+        color: #ffffff !important;
+        border: 1px solid {rt['secondary']} !important;
+        box-shadow: 0 4px 16px {rt['glow']} !important;
+        transform: translateY(-1px);
+    }}
+
+    .role-idle-marker {{
+        display: none;
+    }}
+
+    .role-idle-marker + div [data-testid="stBaseButton-secondary"] {{
+        background: #131c31 !important;
+        color: #cbd5e1 !important;
+        border: 1px solid rgba(148, 163, 184, 0.2) !important;
+    }}
+
+    .nav-btn-active, .nav-btn-idle {{
+        display: none;
+    }}
+
+    .nav-btn-active + div [data-testid="stBaseButton-secondary"] {{
+        background: {rt['gradient']} !important;
+        color: #ffffff !important;
+        border: 1px solid {rt['secondary']} !important;
+        box-shadow: 0 6px 18px {rt['glow']} !important;
+        font-weight: 800 !important;
+    }}
+
+    .nav-btn-idle + div [data-testid="stBaseButton-secondary"] {{
+        background: #11192c !important;
+        color: #cbd5e1 !important;
+        border: 1px solid rgba(148, 163, 184, 0.16) !important;
     }}
 
     [data-testid="stSidebar"] .stButton > button {{
-        text-align: center !important;
-        justify-content: center !important;
         border-radius: 10px !important;
-        padding: 0.45rem 0.55rem !important;
-        margin-bottom: 4px !important;
-        background: {input_bg} !important;
-        color: {text_main} !important;
-        border: 1px solid {input_border} !important;
-        font-size: 0.85rem !important;
+        padding: 0.42rem 0.5rem !important;
+        margin-bottom: 5px !important;
+        font-size: 0.8rem !important;
         font-weight: 700 !important;
         white-space: nowrap !important;
-        transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease, border-color 0.2s ease !important;
+        transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease, border-color 0.2s ease !important;
     }}
 
     [data-testid="stSidebar"] .stButton > button:hover {{
-        transform: translateY(-2px) !important;
-        border-color: #2563eb !important;
-        box-shadow: 0 6px 16px rgba(37, 99, 235, 0.22) !important;
+        transform: translateX(4px) scale(1.015) !important;
+        border-color: {rt['secondary']} !important;
+        box-shadow: 0 6px 16px {rt['glow']} !important;
     }}
 
     [data-testid="stSidebar"] .stButton > button:active {{
-        transform: scale(0.96) !important;
-    }}
-
-    .role-box {{
-        background: linear-gradient(135deg, rgba(37, 99, 235, 0.16), rgba(124, 58, 237, 0.16));
-        border: 1px solid {border_card};
-        border-radius: 14px;
-        padding: 12px 14px;
-        margin-top: 8px;
-        transition: transform 0.22s ease, box-shadow 0.22s ease;
-    }}
-
-    .role-box:hover {{
-        transform: translateY(-3px);
-        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.2);
-    }}
-
-    .role-box-title {{
-        font-weight: 800;
-        font-size: 0.92rem;
-        color: {text_main} !important;
-        margin-bottom: 4px;
-    }}
-
-    .role-box-desc {{
-        font-size: 0.8rem;
-        color: {text_muted} !important;
-        line-height: 1.45;
-    }}
-
-    .block-container {{
-        animation: fadeUp 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-        padding-top: 1.2rem;
+        transform: scale(0.95) !important;
     }}
 
     .hero-card {{
-        background: linear-gradient(125deg, #0f172a 0%, #1d4ed8 55%, #06b6d4 100%);
+        background: {rt['hero_bg']};
         border-radius: 20px;
         padding: 24px 28px;
         margin-bottom: 22px;
-        box-shadow: 0 14px 32px rgba(29, 78, 216, 0.25);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        box-shadow: 0 14px 34px {rt['glow']};
         transition: transform 0.25s ease, box-shadow 0.25s ease;
     }}
 
     .hero-card:hover {{
         transform: translateY(-4px);
-        box-shadow: 0 18px 38px rgba(6, 182, 212, 0.32);
+        box-shadow: 0 18px 40px {rt['glow']};
     }}
 
     .hero-title {{
@@ -235,7 +300,7 @@ st.markdown(f"""
 
     .hero-sub {{
         font-size: 0.95rem;
-        color: rgba(255, 255, 255, 0.92) !important;
+        color: rgba(255, 255, 255, 0.9) !important;
         margin: 0;
     }}
 
@@ -243,27 +308,27 @@ st.markdown(f"""
         display: inline-block;
         margin-top: 12px;
         margin-right: 8px;
-        padding: 4px 12px;
+        padding: 4px 13px;
         border-radius: 999px;
         font-size: 0.78rem;
         font-weight: 700;
         color: #ffffff !important;
-        background: rgba(255, 255, 255, 0.18);
-        border: 1px solid rgba(255, 255, 255, 0.3);
+        background: rgba(255, 255, 255, 0.16);
+        border: 1px solid rgba(255, 255, 255, 0.28);
     }}
 
     .kpi-box {{
         border-radius: 16px;
         padding: 20px;
-        box-shadow: {shadow_card};
+        box-shadow: 0 10px 26px rgba(0, 0, 0, 0.45);
         transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.24s ease, filter 0.24s ease;
         cursor: pointer;
     }}
 
     .kpi-box:hover {{
         transform: translateY(-6px) scale(1.02);
-        filter: brightness(1.07);
-        box-shadow: 0 16px 30px rgba(59, 130, 246, 0.3);
+        filter: brightness(1.08);
+        box-shadow: 0 16px 32px {rt['glow']};
     }}
 
     .kpi-box:active {{
@@ -279,62 +344,63 @@ st.markdown(f"""
     .kpi-val {{ font-size: 2rem; font-weight: 800; color: #ffffff !important; }}
 
     [data-testid="stForm"] {{
-        background: {bg_card} !important;
-        border: 1px solid {border_card} !important;
+        background: #0f172a !important;
+        border: 1px solid rgba(148, 163, 184, 0.2) !important;
         border-radius: 18px !important;
         padding: 18px 20px !important;
-        box-shadow: {shadow_card} !important;
-        transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease !important;
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4) !important;
+        transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease !important;
     }}
 
     [data-testid="stForm"]:hover {{
-        border-color: #2563eb !important;
-        box-shadow: 0 14px 32px rgba(37, 99, 235, 0.16) !important;
+        border-color: {rt['secondary']} !important;
+        box-shadow: 0 14px 32px {rt['glow']} !important;
     }}
 
     [data-testid="stFileUploaderDropzone"] {{
-        background-color: {bg_dropzone} !important;
-        border: 1.5px dashed {border_card} !important;
+        background-color: #111a2e !important;
+        border: 1.5px dashed {rt['secondary']} !important;
         border-radius: 14px !important;
-        color: {text_main} !important;
+        transition: transform 0.2s ease, box-shadow 0.2s ease !important;
     }}
 
-    [data-testid="stFileUploaderDropzone"] span, [data-testid="stFileUploaderDropzone"] small, [data-testid="stFileUploaderDropzone"] div {{
-        color: {text_label} !important;
+    [data-testid="stFileUploaderDropzone"]:hover {{
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px {rt['glow']};
     }}
 
     .stTextInput input, .stSelectbox div[data-baseweb="select"] > div {{
-        background-color: {input_bg} !important;
-        color: {text_main} !important;
-        border-color: {input_border} !important;
+        background-color: #162036 !important;
+        color: #f8fafc !important;
+        border-color: rgba(148, 163, 184, 0.25) !important;
         border-radius: 11px !important;
         transition: transform 0.18s ease, border-color 0.2s ease, box-shadow 0.2s ease !important;
     }}
 
     .stTextInput input:hover, .stSelectbox div[data-baseweb="select"] > div:hover {{
-        border-color: #2563eb !important;
+        border-color: {rt['secondary']} !important;
         transform: translateY(-1px);
     }}
 
     .stTextInput input:focus {{
-        border-color: #2563eb !important;
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.22) !important;
+        border-color: {rt['secondary']} !important;
+        box-shadow: 0 0 0 3px {rt['glow']} !important;
     }}
 
     .main .stButton > button, .main .stDownloadButton > button, [data-testid="stFormSubmitButton"] > button {{
         border-radius: 12px !important;
         font-weight: 700 !important;
         border: none !important;
-        background: linear-gradient(135deg, #2563eb 0%, #06b6d4 100%) !important;
+        background: {rt['gradient']} !important;
         color: #ffffff !important;
-        padding: 0.55rem 1.2rem !important;
+        padding: 0.55rem 1.25rem !important;
         transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.22s ease, filter 0.2s ease !important;
     }}
 
     .main .stButton > button:hover, .main .stDownloadButton > button:hover, [data-testid="stFormSubmitButton"] > button:hover {{
         transform: translateY(-3px) scale(1.02) !important;
-        box-shadow: 0 10px 22px rgba(37, 99, 235, 0.32) !important;
-        filter: brightness(1.07) !important;
+        box-shadow: 0 10px 24px {rt['glow']} !important;
+        filter: brightness(1.08) !important;
     }}
 
     .main .stButton > button:active, .main .stDownloadButton > button:active, [data-testid="stFormSubmitButton"] > button:active {{
@@ -345,14 +411,14 @@ st.markdown(f"""
         border-radius: 16px;
         padding: 18px;
         margin-bottom: 14px;
-        background: linear-gradient(135deg, #0284c7 0%, #4f46e5 100%);
-        box-shadow: {shadow_card};
+        background: {rt['gradient']};
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
         transition: transform 0.24s ease, box-shadow 0.24s ease;
     }}
 
     .course-tile:hover {{
         transform: translateY(-5px) scale(1.015);
-        box-shadow: 0 14px 28px rgba(79, 70, 229, 0.32);
+        box-shadow: 0 14px 30px {rt['glow']};
     }}
 
     .course-tile div {{
@@ -365,8 +431,8 @@ st.markdown(f"""
 <div class="hero-card">
     <p class="hero-title">🎓 Student Information & Grade Management System</p>
     <p class="hero-sub">Interactive Academic Records, Course Enrollment, GPA Calculation & Bulk Excel Import</p>
-    <span class="pill-tag">Role: {role}</span>
-    <span class="pill-tag">Theme: {st.session_state.theme} Mode</span>
+    <span class="pill-tag">Active Role: {role}</span>
+    <span class="pill-tag">Color Mode: {rt['mode_label']}</span>
 </div>
 """, unsafe_allow_html=True)
 
