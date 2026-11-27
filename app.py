@@ -20,6 +20,7 @@ if "active_nav" not in st.session_state:
 
 data = load_data()
 
+# Full-page & role-based color themes
 role_themes = {
     "Admin": {
         "primary": "#2563eb",
@@ -62,6 +63,7 @@ role_themes = {
 role = st.session_state.active_role
 rt = role_themes[role]
 
+# Sidebar: 3 Primary Role Buttons + Compact Mode Indicator + Navigation
 with st.sidebar:
     st.markdown(f"""
     <div class="compact-mode-banner" style="background:{rt['gradient']}; box-shadow:0 6px 18px {rt['glow']};">
@@ -121,20 +123,12 @@ with st.sidebar:
 
 menu = st.session_state.active_nav
 
-# Pure CSS Custom Black Cursor + Localized Hover Illumination (Iframe Safe)
+# Unified sleek black cursor (no shape-switching glitch across blocks)
 BLACK_CURSOR_SVG = (
     "data:image/svg+xml;utf8,"
     "%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E"
     "%3Cpath d='M4 2 L23 14 L14 16 L18 25 L14 26.5 L10 17.5 L4 22 Z' "
     "fill='%2305070c' stroke='%23ffffff' stroke-width='1.6' stroke-linejoin='round'/%3E"
-    "%3C/svg%3E"
-)
-
-BLACK_POINTER_SVG = (
-    "data:image/svg+xml;utf8,"
-    "%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E"
-    "%3Ccircle cx='14' cy='14' r='9' fill='%2305070c' fill-opacity='0.88' stroke='%23ffffff' stroke-width='2'/%3E"
-    "%3Ccircle cx='14' cy='14' r='3' fill='%23ffffff'/%3E"
     "%3C/svg%3E"
 )
 
@@ -150,18 +144,11 @@ st.markdown(f"""
         50% {{ transform: scale(1.35); opacity: 0.7; }}
     }}
 
-    /* Custom sleek black cursor across the entire app without iframe restrictions */
-    .stApp, .stApp * {{
-        cursor: url("{BLACK_CURSOR_SVG}") 4 2, auto !important;
-    }}
-
+    /* Unified black cursor across every element */
+    .stApp, .stApp *,
     .stApp button, .stApp a, .stApp input, .stApp [role="combobox"],
     .stApp [data-testid="stFileUploaderDropzone"], .kpi-box, .course-tile, .hero-card {{
-        cursor: url("{BLACK_POINTER_SVG}") 14 14, pointer !important;
-    }}
-
-    .stApp button:active, .stApp a:active {{
-        cursor: url("{BLACK_POINTER_SVG}") 14 14, grabbing !important;
+        cursor: url("{BLACK_CURSOR_SVG}") 4 2, auto !important;
     }}
 
     .stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"], .main {{
