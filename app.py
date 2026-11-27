@@ -25,7 +25,7 @@ data = load_data()
 
 # Sidebar: Theme Switcher + Interactive Role & Navigation
 with st.sidebar:
-    st.markdown("### 🎨 Appearance Mode")
+    st.markdown("#### 🎨 Appearance Mode")
     theme_choice = st.segmented_control(
         "Theme",
         options=["Dark", "Light"],
@@ -37,12 +37,14 @@ with st.sidebar:
         st.rerun()
 
     st.divider()
-    st.markdown("### 🔐 Role Switcher")
+    st.markdown("#### 🔐 Role Switcher")
     roles = ["Admin", "Doctor", "Student"]
     role_cols = st.columns(3)
     for idx, r in enumerate(roles):
         with role_cols[idx]:
-            if st.button(r, key=f"role_btn_{r}", use_container_width=True):
+            is_act_role = (st.session_state.active_role == r)
+            lbl = f"✓ {r}" if is_act_role else r
+            if st.button(lbl, key=f"role_btn_{r}", use_container_width=True):
                 st.session_state.active_role = r
                 allowed_menus = {
                     "Admin": ["Overview & Students", "Courses & Enrollment", "Grade Entry", "Student Transcript"],
@@ -68,7 +70,7 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
     st.divider()
-    st.markdown("### 🧭 Navigation")
+    st.markdown("#### 🧭 Navigation")
     if role == "Admin":
         menu_options = ["Overview & Students", "Courses & Enrollment", "Grade Entry", "Student Transcript"]
     elif role == "Doctor":
@@ -89,25 +91,31 @@ with st.sidebar:
 menu = st.session_state.active_nav
 is_dark = (st.session_state.theme == "Dark")
 
-# Dynamic Dark / Light Theme + Interactive Animations CSS
+# Complete Dark & Light Palette
 if is_dark:
     bg_main = "#090d16"
+    bg_header = "rgba(9, 13, 22, 0.85)"
     bg_sidebar = "linear-gradient(180deg, #0f172a 0%, #111827 100%)"
-    bg_card = "rgba(17, 24, 39, 0.85)"
-    border_card = "rgba(99, 102, 241, 0.28)"
+    bg_card = "#111827"
+    bg_dropzone = "#162033"
+    border_card = "rgba(99, 102, 241, 0.32)"
     text_main = "#f8fafc"
+    text_label = "#e2e8f0"
     text_muted = "#94a3b8"
     input_bg = "#1e293b"
     input_border = "#334155"
     shadow_card = "0 10px 28px rgba(0, 0, 0, 0.45)"
 else:
     bg_main = "#f1f5f9"
-    bg_sidebar = "linear-gradient(180deg, #ffffff 0%, #eef2ff 100%)"
+    bg_header = "rgba(241, 245, 249, 0.88)"
+    bg_sidebar = "linear-gradient(180deg, #ffffff 0%, #e2e8f0 100%)"
     bg_card = "#ffffff"
-    border_card = "rgba(37, 99, 235, 0.2)"
+    bg_dropzone = "#f8fafc"
+    border_card = "rgba(37, 99, 235, 0.24)"
     text_main = "#0f172a"
+    text_label = "#0f172a"
     text_muted = "#475569"
-    input_bg = "#f8fafc"
+    input_bg = "#ffffff"
     input_border = "#cbd5e1"
     shadow_card = "0 10px 26px rgba(15, 23, 42, 0.08)"
 
@@ -118,47 +126,62 @@ st.markdown(f"""
         to {{ opacity: 1; transform: translateY(0); }}
     }}
 
-    @keyframes floatSoft {{
-        0%, 100% {{ transform: translateY(0px); }}
-        50% {{ transform: translateY(-3px); }}
+    .stApp, .stApp > div, [data-testid="stAppViewContainer"] {{
+        background-color: {bg_main} !important;
+        color: {text_main} !important;
+        transition: background-color 0.28s ease, color 0.28s ease;
     }}
 
-    .stApp {{
-        background: {bg_main};
-        color: {text_main};
-        transition: background 0.3s ease, color 0.3s ease;
+    [data-testid="stHeader"] {{
+        background-color: {bg_header} !important;
+        backdrop-filter: blur(8px);
+    }}
+
+    h1, h2, h3, h4, h5, h6, p, span, div, label {{
+        color: inherit;
+    }}
+
+    .stMarkdown p, .stMarkdown span, .stMarkdown li, .stCaption, [data-testid="stWidgetLabel"] label, [data-testid="stWidgetLabel"] p {{
+        color: {text_label} !important;
+    }}
+
+    .stCaption {{
+        color: {text_muted} !important;
     }}
 
     [data-testid="stSidebar"] {{
-        background: {bg_sidebar};
-        border-right: 1px solid {border_card};
-        transition: all 0.3s ease;
+        background: {bg_sidebar} !important;
+        border-right: 1px solid {border_card} !important;
+        color: {text_main} !important;
     }}
 
     [data-testid="stSidebar"] .stButton > button {{
-        text-align: left !important;
-        justify-content: flex-start !important;
-        border-radius: 11px !important;
-        padding: 0.52rem 0.85rem !important;
+        text-align: center !important;
+        justify-content: center !important;
+        border-radius: 10px !important;
+        padding: 0.45rem 0.55rem !important;
         margin-bottom: 4px !important;
         background: {input_bg} !important;
         color: {text_main} !important;
         border: 1px solid {input_border} !important;
-        transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease !important;
+        font-size: 0.85rem !important;
+        font-weight: 700 !important;
+        white-space: nowrap !important;
+        transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease, border-color 0.2s ease !important;
     }}
 
     [data-testid="stSidebar"] .stButton > button:hover {{
-        transform: translateX(5px) scale(1.01) !important;
-        border-color: #38bdf8 !important;
-        box-shadow: 0 6px 18px rgba(56, 189, 248, 0.25) !important;
+        transform: translateY(-2px) !important;
+        border-color: #2563eb !important;
+        box-shadow: 0 6px 16px rgba(37, 99, 235, 0.22) !important;
     }}
 
     [data-testid="stSidebar"] .stButton > button:active {{
-        transform: translateX(2px) scale(0.96) !important;
+        transform: scale(0.96) !important;
     }}
 
     .role-box {{
-        background: linear-gradient(135deg, rgba(37, 99, 235, 0.18), rgba(124, 58, 237, 0.18));
+        background: linear-gradient(135deg, rgba(37, 99, 235, 0.16), rgba(124, 58, 237, 0.16));
         border: 1px solid {border_card};
         border-radius: 14px;
         padding: 12px 14px;
@@ -168,24 +191,24 @@ st.markdown(f"""
 
     .role-box:hover {{
         transform: translateY(-3px);
-        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.22);
+        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.2);
     }}
 
     .role-box-title {{
         font-weight: 800;
         font-size: 0.92rem;
-        color: {text_main};
+        color: {text_main} !important;
         margin-bottom: 4px;
     }}
 
     .role-box-desc {{
         font-size: 0.8rem;
-        color: {text_muted};
-        line-height: 1.4;
+        color: {text_muted} !important;
+        line-height: 1.45;
     }}
 
     .block-container {{
-        animation: fadeUp 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+        animation: fadeUp 0.4s cubic-bezier(0.22, 1, 0.36, 1);
         padding-top: 1.2rem;
     }}
 
@@ -193,26 +216,26 @@ st.markdown(f"""
         background: linear-gradient(125deg, #0f172a 0%, #1d4ed8 55%, #06b6d4 100%);
         border-radius: 20px;
         padding: 24px 28px;
-        color: #ffffff;
         margin-bottom: 22px;
-        box-shadow: 0 14px 32px rgba(29, 78, 216, 0.28);
+        box-shadow: 0 14px 32px rgba(29, 78, 216, 0.25);
         transition: transform 0.25s ease, box-shadow 0.25s ease;
     }}
 
     .hero-card:hover {{
         transform: translateY(-4px);
-        box-shadow: 0 18px 38px rgba(6, 182, 212, 0.34);
+        box-shadow: 0 18px 38px rgba(6, 182, 212, 0.32);
     }}
 
     .hero-title {{
         font-size: 1.8rem;
         font-weight: 800;
+        color: #ffffff !important;
         margin: 0 0 6px 0;
     }}
 
     .hero-sub {{
         font-size: 0.95rem;
-        opacity: 0.92;
+        color: rgba(255, 255, 255, 0.92) !important;
         margin: 0;
     }}
 
@@ -224,6 +247,7 @@ st.markdown(f"""
         border-radius: 999px;
         font-size: 0.78rem;
         font-weight: 700;
+        color: #ffffff !important;
         background: rgba(255, 255, 255, 0.18);
         border: 1px solid rgba(255, 255, 255, 0.3);
     }}
@@ -231,7 +255,6 @@ st.markdown(f"""
     .kpi-box {{
         border-radius: 16px;
         padding: 20px;
-        color: #ffffff;
         box-shadow: {shadow_card};
         transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.24s ease, filter 0.24s ease;
         cursor: pointer;
@@ -240,7 +263,7 @@ st.markdown(f"""
     .kpi-box:hover {{
         transform: translateY(-6px) scale(1.02);
         filter: brightness(1.07);
-        box-shadow: 0 16px 30px rgba(59, 130, 246, 0.32);
+        box-shadow: 0 16px 30px rgba(59, 130, 246, 0.3);
     }}
 
     .kpi-box:active {{
@@ -252,8 +275,8 @@ st.markdown(f"""
     .g-violet {{ background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); }}
     .g-amber {{ background: linear-gradient(135deg, #d97706 0%, #ea580c 100%); }}
 
-    .kpi-lbl {{ font-size: 0.86rem; font-weight: 600; opacity: 0.92; margin-bottom: 6px; }}
-    .kpi-val {{ font-size: 2rem; font-weight: 800; }}
+    .kpi-lbl {{ font-size: 0.86rem; font-weight: 600; color: rgba(255, 255, 255, 0.92) !important; margin-bottom: 6px; }}
+    .kpi-val {{ font-size: 2rem; font-weight: 800; color: #ffffff !important; }}
 
     [data-testid="stForm"] {{
         background: {bg_card} !important;
@@ -265,8 +288,19 @@ st.markdown(f"""
     }}
 
     [data-testid="stForm"]:hover {{
-        border-color: #3b82f6 !important;
-        box-shadow: 0 14px 32px rgba(59, 130, 246, 0.18) !important;
+        border-color: #2563eb !important;
+        box-shadow: 0 14px 32px rgba(37, 99, 235, 0.16) !important;
+    }}
+
+    [data-testid="stFileUploaderDropzone"] {{
+        background-color: {bg_dropzone} !important;
+        border: 1.5px dashed {border_card} !important;
+        border-radius: 14px !important;
+        color: {text_main} !important;
+    }}
+
+    [data-testid="stFileUploaderDropzone"] span, [data-testid="stFileUploaderDropzone"] small, [data-testid="stFileUploaderDropzone"] div {{
+        color: {text_label} !important;
     }}
 
     .stTextInput input, .stSelectbox div[data-baseweb="select"] > div {{
@@ -278,16 +312,16 @@ st.markdown(f"""
     }}
 
     .stTextInput input:hover, .stSelectbox div[data-baseweb="select"] > div:hover {{
-        border-color: #38bdf8 !important;
+        border-color: #2563eb !important;
         transform: translateY(-1px);
     }}
 
     .stTextInput input:focus {{
         border-color: #2563eb !important;
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25) !important;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.22) !important;
     }}
 
-    .stButton > button, .stDownloadButton > button, [data-testid="stFormSubmitButton"] > button {{
+    .main .stButton > button, .main .stDownloadButton > button, [data-testid="stFormSubmitButton"] > button {{
         border-radius: 12px !important;
         font-weight: 700 !important;
         border: none !important;
@@ -297,22 +331,20 @@ st.markdown(f"""
         transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.22s ease, filter 0.2s ease !important;
     }}
 
-    .stButton > button:hover, .stDownloadButton > button:hover, [data-testid="stFormSubmitButton"] > button:hover {{
+    .main .stButton > button:hover, .main .stDownloadButton > button:hover, [data-testid="stFormSubmitButton"] > button:hover {{
         transform: translateY(-3px) scale(1.02) !important;
-        box-shadow: 0 10px 22px rgba(6, 182, 212, 0.35) !important;
-        filter: brightness(1.08) !important;
+        box-shadow: 0 10px 22px rgba(37, 99, 235, 0.32) !important;
+        filter: brightness(1.07) !important;
     }}
 
-    .stButton > button:active, .stDownloadButton > button:active, [data-testid="stFormSubmitButton"] > button:active {{
+    .main .stButton > button:active, .main .stDownloadButton > button:active, [data-testid="stFormSubmitButton"] > button:active {{
         transform: translateY(1px) scale(0.95) !important;
-        box-shadow: 0 3px 8px rgba(37, 99, 235, 0.25) !important;
     }}
 
     .course-tile {{
         border-radius: 16px;
         padding: 18px;
         margin-bottom: 14px;
-        color: #ffffff;
         background: linear-gradient(135deg, #0284c7 0%, #4f46e5 100%);
         box-shadow: {shadow_card};
         transition: transform 0.24s ease, box-shadow 0.24s ease;
@@ -321,6 +353,10 @@ st.markdown(f"""
     .course-tile:hover {{
         transform: translateY(-5px) scale(1.015);
         box-shadow: 0 14px 28px rgba(79, 70, 229, 0.32);
+    }}
+
+    .course-tile div {{
+        color: #ffffff !important;
     }}
 </style>
 """, unsafe_allow_html=True)
