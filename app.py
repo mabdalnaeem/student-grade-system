@@ -20,7 +20,6 @@ if "active_nav" not in st.session_state:
 
 data = load_data()
 
-# Full-page & role-based color themes
 role_themes = {
     "Admin": {
         "primary": "#2563eb",
@@ -63,7 +62,6 @@ role_themes = {
 role = st.session_state.active_role
 rt = role_themes[role]
 
-# Sidebar: 3 Primary Full-Width Role Buttons + Compact Mode Box + Navigation
 with st.sidebar:
     st.markdown(f"""
     <div class="compact-mode-banner" style="background:{rt['gradient']}; box-shadow:0 6px 18px {rt['glow']};">
@@ -123,7 +121,23 @@ with st.sidebar:
 
 menu = st.session_state.active_nav
 
-# Full-Page Dynamic Background + Role Colors + Interactive Hover/Click Animations
+# Pure CSS Custom Black Cursor + Localized Hover Illumination (Iframe Safe)
+BLACK_CURSOR_SVG = (
+    "data:image/svg+xml;utf8,"
+    "%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E"
+    "%3Cpath d='M4 2 L23 14 L14 16 L18 25 L14 26.5 L10 17.5 L4 22 Z' "
+    "fill='%2305070c' stroke='%23ffffff' stroke-width='1.6' stroke-linejoin='round'/%3E"
+    "%3C/svg%3E"
+)
+
+BLACK_POINTER_SVG = (
+    "data:image/svg+xml;utf8,"
+    "%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E"
+    "%3Ccircle cx='14' cy='14' r='9' fill='%2305070c' fill-opacity='0.88' stroke='%23ffffff' stroke-width='2'/%3E"
+    "%3Ccircle cx='14' cy='14' r='3' fill='%23ffffff'/%3E"
+    "%3C/svg%3E"
+)
+
 st.markdown(f"""
 <style>
     @keyframes fadeSlideDown {{
@@ -134,6 +148,20 @@ st.markdown(f"""
     @keyframes pulseDot {{
         0%, 100% {{ transform: scale(1); opacity: 1; }}
         50% {{ transform: scale(1.35); opacity: 0.7; }}
+    }}
+
+    /* Custom sleek black cursor across the entire app without iframe restrictions */
+    .stApp, .stApp * {{
+        cursor: url("{BLACK_CURSOR_SVG}") 4 2, auto !important;
+    }}
+
+    .stApp button, .stApp a, .stApp input, .stApp [role="combobox"],
+    .stApp [data-testid="stFileUploaderDropzone"], .kpi-box, .course-tile, .hero-card {{
+        cursor: url("{BLACK_POINTER_SVG}") 14 14, pointer !important;
+    }}
+
+    .stApp button:active, .stApp a:active {{
+        cursor: url("{BLACK_POINTER_SVG}") 14 14, grabbing !important;
     }}
 
     .stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"], .main {{
@@ -195,11 +223,6 @@ st.markdown(f"""
         font-weight: 800;
         letter-spacing: 0.05em;
         margin-bottom: 10px;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }}
-
-    .compact-mode-banner:hover {{
-        transform: translateY(-2px);
     }}
 
     .mode-dot {{
@@ -216,12 +239,6 @@ st.markdown(f"""
         border-radius: 11px;
         padding: 9px 11px;
         margin-top: 8px;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }}
-
-    .compact-role-card:hover {{
-        transform: translateY(-2px);
-        box-shadow: 0 8px 18px {rt['glow']};
     }}
 
     .compact-role-title {{
@@ -276,17 +293,13 @@ st.markdown(f"""
         font-weight: 700 !important;
         text-align: left !important;
         justify-content: flex-start !important;
-        transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease, border-color 0.2s ease !important;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease !important;
     }}
 
     [data-testid="stSidebar"] .stButton > button:hover {{
-        transform: translateX(4px) scale(1.015) !important;
         border-color: {rt['secondary']} !important;
         box-shadow: 0 6px 16px {rt['glow']} !important;
-    }}
-
-    [data-testid="stSidebar"] .stButton > button:active {{
-        transform: scale(0.96) !important;
+        filter: brightness(1.12) !important;
     }}
 
     .hero-card {{
@@ -296,12 +309,12 @@ st.markdown(f"""
         margin-bottom: 22px;
         border: 1px solid rgba(255, 255, 255, 0.16);
         box-shadow: 0 14px 34px {rt['glow']};
-        transition: transform 0.25s ease, box-shadow 0.25s ease;
+        transition: box-shadow 0.25s ease, filter 0.25s ease;
     }}
 
     .hero-card:hover {{
-        transform: translateY(-4px);
-        box-shadow: 0 18px 40px {rt['glow']};
+        box-shadow: 0 18px 42px {rt['glow']};
+        filter: brightness(1.05);
     }}
 
     .hero-title {{
@@ -328,24 +341,26 @@ st.markdown(f"""
         color: #ffffff !important;
         background: rgba(255, 255, 255, 0.16);
         border: 1px solid rgba(255, 255, 255, 0.28);
+        transition: background 0.2s ease, border-color 0.2s ease;
+    }}
+
+    .pill-tag:hover {{
+        background: rgba(255, 255, 255, 0.28);
+        border-color: #ffffff;
     }}
 
     .kpi-box {{
         border-radius: 16px;
         padding: 20px;
         box-shadow: 0 10px 26px rgba(0, 0, 0, 0.45);
-        transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.24s ease, filter 0.24s ease;
-        cursor: pointer;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        transition: box-shadow 0.25s ease, border-color 0.25s ease, filter 0.25s ease;
     }}
 
     .kpi-box:hover {{
-        transform: translateY(-6px) scale(1.02);
-        filter: brightness(1.08);
-        box-shadow: 0 16px 32px {rt['glow']};
-    }}
-
-    .kpi-box:active {{
-        transform: scale(0.97);
+        border-color: rgba(255, 255, 255, 0.55);
+        box-shadow: 0 16px 34px {rt['glow']};
+        filter: brightness(1.09);
     }}
 
     .g-blue {{ background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); }}
@@ -362,7 +377,7 @@ st.markdown(f"""
         border-radius: 18px !important;
         padding: 18px 20px !important;
         box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4) !important;
-        transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease !important;
+        transition: border-color 0.22s ease, box-shadow 0.22s ease !important;
     }}
 
     [data-testid="stForm"]:hover {{
@@ -374,12 +389,12 @@ st.markdown(f"""
         background-color: rgba(15, 23, 42, 0.82) !important;
         border: 1.5px dashed {rt['secondary']} !important;
         border-radius: 14px !important;
-        transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+        transition: background-color 0.2s ease, box-shadow 0.2s ease !important;
     }}
 
     [data-testid="stFileUploaderDropzone"]:hover {{
-        transform: translateY(-2px);
-        box-shadow: 0 10px 24px {rt['glow']};
+        background-color: rgba(25, 39, 68, 0.92) !important;
+        box-shadow: 0 10px 24px {rt['glow']} !important;
     }}
 
     .stTextInput input, .stSelectbox div[data-baseweb="select"] > div {{
@@ -387,12 +402,12 @@ st.markdown(f"""
         color: #f8fafc !important;
         border-color: rgba(255, 255, 255, 0.18) !important;
         border-radius: 11px !important;
-        transition: transform 0.18s ease, border-color 0.2s ease, box-shadow 0.2s ease !important;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease !important;
     }}
 
     .stTextInput input:hover, .stSelectbox div[data-baseweb="select"] > div:hover {{
         border-color: {rt['secondary']} !important;
-        transform: translateY(-1px);
+        background-color: rgba(28, 42, 72, 0.95) !important;
     }}
 
     .stTextInput input:focus {{
@@ -407,17 +422,12 @@ st.markdown(f"""
         background: {rt['gradient']} !important;
         color: #ffffff !important;
         padding: 0.55rem 1.25rem !important;
-        transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.22s ease, filter 0.2s ease !important;
+        transition: box-shadow 0.2s ease, filter 0.2s ease !important;
     }}
 
     .main .stButton > button:hover, .main .stDownloadButton > button:hover, [data-testid="stFormSubmitButton"] > button:hover {{
-        transform: translateY(-3px) scale(1.02) !important;
-        box-shadow: 0 10px 24px {rt['glow']} !important;
-        filter: brightness(1.08) !important;
-    }}
-
-    .main .stButton > button:active, .main .stDownloadButton > button:active, [data-testid="stFormSubmitButton"] > button:active {{
-        transform: translateY(1px) scale(0.95) !important;
+        box-shadow: 0 8px 22px {rt['glow']} !important;
+        filter: brightness(1.1) !important;
     }}
 
     .course-tile {{
@@ -426,12 +436,12 @@ st.markdown(f"""
         margin-bottom: 14px;
         background: {rt['gradient']};
         box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
-        transition: transform 0.24s ease, box-shadow 0.24s ease;
+        transition: box-shadow 0.22s ease, filter 0.22s ease !important;
     }}
 
     .course-tile:hover {{
-        transform: translateY(-5px) scale(1.015);
-        box-shadow: 0 14px 30px {rt['glow']};
+        box-shadow: 0 14px 30px {rt['glow']} !important;
+        filter: brightness(1.08);
     }}
 
     .course-tile div {{
